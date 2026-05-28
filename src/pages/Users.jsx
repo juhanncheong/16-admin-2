@@ -1934,7 +1934,7 @@ async function toggleSigninReward(user) {
                       
                           {banned ? (
                             <span
-                              className="h-2.5 w-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.75)]"
+                              className="h-2 w-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.75)]"
                               title="User is banned"
                             />
                           ) : null}
