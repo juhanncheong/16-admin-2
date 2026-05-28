@@ -1927,14 +1927,18 @@ async function toggleSigninReward(user) {
 
                       {/* phone */}
                       <td className="px-4 py-3">
-                        <div className={`  text-xs ${strongText}`}>
-                          {u.phoneNumber || "-"}
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs ${strongText}`}>
+                            {u.phoneNumber || "-"}
+                          </span>
+                      
+                          {banned ? (
+                            <span
+                              className="h-2.5 w-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.75)]"
+                              title="User is banned"
+                            />
+                          ) : null}
                         </div>
-                        {banned ? (
-                          <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-red-500/25 bg-red-500/10 px-2 py-1 text-[10px] text-red-200">
-                            BANNED
-                          </div>
-                        ) : null}
                       </td>
 
                       {/* user id */}
