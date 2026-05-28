@@ -830,6 +830,19 @@ function goToTrialBonus(user) {
   navigate(`/admin/trial-bonus?uid=${encodeURIComponent(uid)}`);
 }
 
+function goToEmailUser(user) {
+  const uid = String(user?.uid || "").trim();
+
+  if (!uid) {
+    toast.error("This user has no UID");
+    return;
+  }
+
+  setActionsModal({ open: false, user: null });
+
+  navigate(`/admin/emails?uid=${encodeURIComponent(uid)}`);
+}
+
 async function copyUid(uid) {
   const clean = String(uid || "").trim();
 
@@ -2622,7 +2635,11 @@ async function toggleSigninReward(user) {
         title="User Actions"
         subtitle={
           actionsModal.user
-            ? `User: ${actionsModal.user.phoneNumber} • Role: ${actionsModal.user.role}`
+            ? `User: ${actionsModal.user.phoneNumber} • Email: ${
+                actionsModal.user.emailVerified && actionsModal.user.email
+                  ? actionsModal.user.email
+                  : "Email not verified"
+              }`
             : ""
         }
         onClose={() => {
@@ -3009,6 +3026,33 @@ async function toggleSigninReward(user) {
                     <div className="font-semibold">Access Account</div>
                     <div className="mt-1 text-[11px] opacity-70">
                       Open platform as this user
+                    </div>
+                  </button>
+
+                  <button
+                    disabled={
+                      busyId === actionsModal.user._id ||
+                      !actionsModal.user.emailVerified ||
+                      !actionsModal.user.email
+                    }
+                    onClick={() => goToEmailUser(actionsModal.user)}
+                    className={`${actionPlainClass} disabled:cursor-not-allowed disabled:opacity-50`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="font-semibold">Email User</div>
+                        <div className={`mt-1 ${drawerMutedClass}`}>
+                          {actionsModal.user.emailVerified && actionsModal.user.email
+                            ? `Send email to ${actionsModal.user.email}`
+                            : "Email not verified"}
+                        </div>
+                      </div>
+                  
+                      <span className={statusPlainClass}>
+                        {actionsModal.user.emailVerified && actionsModal.user.email
+                          ? "READY"
+                          : "LOCKED"}
+                      </span>
                     </div>
                   </button>
 

@@ -44,6 +44,7 @@ const TAB_LABELS = {
   "/admin/lucky-draw": "Lucky Draw",
   "/admin/bonus-credit": "Bonus Credit",
   "/admin/popups": "Popups",
+  "/admin/emails": "Emails",
   "/admin/targeted-bonus-offers": "Targeted Bonus",
 };
 
@@ -997,6 +998,14 @@ export default function Shell({ title, children }) {
                   icon={<CalendarDays className="h-4 w-4 shrink-0" />}
                 >
                   Events
+                </SideLink>
+
+                <SideLink
+                  theme={theme}
+                  to="/admin/emails"
+                  icon={<FileText className="h-4 w-4 shrink-0" />}
+                >
+                  Emails
                 </SideLink>
               </SidebarSection>
 

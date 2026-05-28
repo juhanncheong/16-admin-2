@@ -23,6 +23,7 @@ import BonusCreditPage from "./pages/BonusCredit";
 import AdminPopupsPage from "./pages/AdminPopupsPage";
 import AdminOrderList from "./pages/AdminOrderList";
 import TargetedBonusOffers from "./pages/TargetedBonusOffers";
+import AdminEmails from "./pages/AdminEmails";
 
 const ADMIN_INACTIVITY_LIMIT = 60 * 60 * 1000; // 1 hour
 
@@ -115,6 +116,7 @@ export default function App() {
           <Route path="/admin/popups" element={<AdminPopupsPage />} />
           <Route path="/admin/orders/list" element={<AdminOrderList />} />
           <Route path="/admin/targeted-bonus-offers" element={<TargetedBonusOffers />} />
+          <Route path="/admin/emails" element={<AdminEmails />} />
 
           <Route path="*" element={<Navigate to="/admin/login" replace />} />
         </Routes>
