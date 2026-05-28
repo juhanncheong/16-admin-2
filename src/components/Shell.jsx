@@ -843,7 +843,7 @@ export default function Shell({ title, children }) {
                 isDark ? "text-white" : "text-[#111827]"
               }`}
             >
-              ALQ Admin
+              16 集团 Admin
             </div>
 
             <button
