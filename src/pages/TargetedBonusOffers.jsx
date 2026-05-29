@@ -222,38 +222,26 @@ export default function TargetedBonusOffers() {
       defaultOptions: [
         {
           tierTitle: "",
-          depositAmount: "1200",
-          bonusAmount: "125",
+          depositAmount: "1000",
+          bonusAmount: "150",
           isFull: false,
         },
         {
           tierTitle: "",
           depositAmount: "2500",
-          bonusAmount: "315",
+          bonusAmount: "400",
           isFull: false,
         },
         {
           tierTitle: "",
           depositAmount: "5000",
-          bonusAmount: "800",
-          isFull: false,
-        },
-        {
-          tierTitle: "",
-          depositAmount: "8000",
-          bonusAmount: "1600",
+          bonusAmount: "850",
           isFull: false,
         },
         {
           tierTitle: "",
           depositAmount: "10000",
-          bonusAmount: "2500",
-          isFull: false,
-        },
-        {
-          tierTitle: "",
-          depositAmount: "15000",
-          bonusAmount: "4000",
+          bonusAmount: "1800",
           isFull: false,
         },
       ],
