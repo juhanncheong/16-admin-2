@@ -50,6 +50,8 @@ function methodLabel(method) {
     BANK_FASTER_PAYMENTS: "Faster Payments",
     BANK_SEPA: "SEPA Bank Transfer",
     WISE: "Wise",
+    SKRILL: "Skrill",
+    BANK_NZ: "New Zealand Bank Transfer",
     UAEFTS: "UAEFTS Bank Transfer",
     VIP_UAEFTS: "VIP UAEFTS Bank Transfer",
   };
@@ -58,7 +60,15 @@ function methodLabel(method) {
 }
 
 function methodFamily(method) {
-  return ["BANK_FASTER_PAYMENTS", "BANK_SEPA", "WISE", "UAEFTS", "VIP_UAEFTS"].includes(method)
+  return [
+    "BANK_FASTER_PAYMENTS",
+    "BANK_SEPA",
+    "WISE",
+    "SKRILL",
+    "BANK_NZ",
+    "UAEFTS",
+    "VIP_UAEFTS",
+  ].includes(method)
     ? "BANK"
     : "CRYPTO";
 }
@@ -87,7 +97,9 @@ function bankSummary(method, bankDetails) {
     const iban = String(bankDetails.iban || "").trim();
     const country = String(bankDetails.country || "").trim();
     const maskedIban =
-      iban.length > 8 ? `${iban.slice(0, 4)}****${iban.slice(-4)}` : iban || "-";
+      iban.length > 8
+        ? `${iban.slice(0, 4)}****${iban.slice(-4)}`
+        : iban || "-";
 
     return [maskedIban, country].filter(Boolean).join(" • ");
   }
@@ -96,16 +108,32 @@ function bankSummary(method, bankDetails) {
     const wiseEmail = String(bankDetails.wiseEmail || "").trim();
     return wiseEmail || "-";
   }
-  
+
+  if (method === "SKRILL") {
+    const skrillEmail = String(bankDetails.skrillEmail || "").trim();
+    return skrillEmail || "-";
+  }
+
+  if (method === "BANK_NZ") {
+    const bankName = String(bankDetails.bankName || "").trim();
+    const accountNumber = String(bankDetails.accountNumber || "").trim();
+    const country = String(bankDetails.country || "NZ").trim();
+    const maskedAcc = accountNumber ? `****${accountNumber.slice(-4)}` : "-";
+
+    return [bankName, maskedAcc, country].filter(Boolean).join(" • ");
+  }
+
   if (method === "UAEFTS" || method === "VIP_UAEFTS") {
     const bankName = String(bankDetails.bankName || "").trim();
     const iban = String(bankDetails.iban || "").trim();
     const maskedIban =
-      iban.length > 8 ? `${iban.slice(0, 4)}****${iban.slice(-4)}` : iban || "-";
-  
+      iban.length > 8
+        ? `${iban.slice(0, 4)}****${iban.slice(-4)}`
+        : iban || "-";
+
     return [bankName, maskedIban, "AE"].filter(Boolean).join(" • ");
   }
-  
+
   return "-";
 }
 
@@ -121,6 +149,8 @@ const BANK_METHODS = [
   "BANK_FASTER_PAYMENTS",
   "BANK_SEPA",
   "WISE",
+  "SKRILL",
+  "BANK_NZ",
   "UAEFTS",
   "VIP_UAEFTS",
 ];
@@ -151,6 +181,18 @@ const METHOD_GROUPS = [
     label: "Wise",
     description: "Wise email withdrawal method",
     methods: ["WISE"],
+  },
+  {
+    key: "SKRILL",
+    label: "Skrill",
+    description: "Skrill email withdrawal method",
+    methods: ["SKRILL"],
+  },
+  {
+    key: "BANK_NZ",
+    label: "New Zealand Bank",
+    description: "New Zealand bank account withdrawal method",
+    methods: ["BANK_NZ"],
   },
   {
     key: "UAEFTS",
@@ -186,7 +228,7 @@ export default function AdminWithdrawalsPage() {
     theme === "dark"
       ? "w-full mt-1 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-white outline-none focus:border-white/20"
       : "w-full mt-1 rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs text-gray-900 outline-none focus:border-gray-400";
-  
+
   const selectClass =
     theme === "dark"
       ? "w-full mt-1 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-white outline-none focus:border-white/20"
@@ -213,16 +255,11 @@ export default function AdminWithdrawalsPage() {
       : "bg-gray-50 text-left text-xs text-gray-500";
 
   const tableBodyClass =
-    theme === "dark"
-      ? "divide-y divide-white/10"
-      : "divide-y divide-gray-200";
+    theme === "dark" ? "divide-y divide-white/10" : "divide-y divide-gray-200";
 
-  const modalOverlayClass =
-    `fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-4 ${
-      theme === "dark"
-        ? "bg-black/75"
-        : "bg-slate-950/45"
-    } backdrop-blur-xl`;
+  const modalOverlayClass = `fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-4 ${
+    theme === "dark" ? "bg-black/75" : "bg-slate-950/45"
+  } backdrop-blur-xl`;
 
   const modalCardClass =
     theme === "dark"
@@ -238,12 +275,12 @@ export default function AdminWithdrawalsPage() {
     theme === "dark"
       ? "my-4 w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-[#071120] shadow-[0_30px_90px_rgba(0,0,0,0.65)] ring-1 ring-white/[0.03]"
       : "my-4 w-full max-w-xl overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl";
-  
+
   const rejectDangerButtonClass =
     theme === "dark"
       ? "rounded-xl border border-red-400/30 bg-red-500/15 px-4 py-2 text-xs font-semibold text-red-200 hover:bg-red-500/20 disabled:opacity-50"
       : "rounded-xl border border-red-200 bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50";
-  
+
   const rejectInfoCardClass =
     theme === "dark"
       ? "rounded-2xl border border-white/10 bg-white/[0.04] p-4"
@@ -253,7 +290,7 @@ export default function AdminWithdrawalsPage() {
     theme === "dark"
       ? "rounded-xl border border-emerald-400/30 bg-emerald-500/15 px-4 py-2 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/20 disabled:opacity-50"
       : "rounded-xl border border-emerald-200 bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50";
-  
+
   const approveInfoCardClass =
     theme === "dark"
       ? "rounded-2xl border border-white/10 bg-white/[0.04] p-4"
@@ -263,22 +300,22 @@ export default function AdminWithdrawalsPage() {
     theme === "dark"
       ? "mt-1 flex min-h-[58px] flex-col items-stretch justify-between gap-2 rounded-2xl border border-slate-700/60 bg-[#081321] px-3 py-3 text-white shadow-inner sm:flex-row sm:items-center sm:px-4"
       : "mt-1 flex min-h-[58px] flex-col items-stretch justify-between gap-2 rounded-2xl border border-gray-200 bg-gray-50 px-3 py-3 text-gray-900 sm:flex-row sm:items-center sm:px-4";
-  
+
   const bankPlainFieldClass =
     theme === "dark"
       ? "mt-1 break-words rounded-2xl border border-slate-700/60 bg-[#081321] px-3 py-3 text-xs font-semibold text-white shadow-inner sm:px-4 sm:py-4"
       : "mt-1 break-words rounded-2xl border border-gray-200 bg-gray-50 px-3 py-3 text-xs font-semibold text-gray-900 sm:px-4 sm:py-4";
-  
+
   const bankCopyButtonClass =
     theme === "dark"
       ? "shrink-0 rounded-xl border border-slate-600/70 bg-slate-800/80 px-2.5 py-1.5 text-xs font-semibold text-slate-100 hover:bg-slate-700 sm:w-auto"
       : "shrink-0 rounded-xl border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 sm:w-auto";
-  
+
   const bankDoneButtonClass =
     theme === "dark"
       ? "rounded-xl bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-950 shadow-lg shadow-black/20 hover:bg-white"
       : "rounded-xl bg-gray-900 px-4 py-2 text-xs font-semibold text-white shadow-lg hover:bg-gray-800";
-          
+
   const largeModalCardClass =
     theme === "dark"
       ? "my-4 max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-white/10 bg-[#071120] p-4 shadow-2xl sm:p-8"
@@ -356,12 +393,12 @@ export default function AdminWithdrawalsPage() {
     item: null,
     reason: "",
   });
-  
+
   const [approveModal, setApproveModal] = useState({
     open: false,
     item: null,
   });
-  
+
   const [progressModal, setProgressModal] = useState({
     open: false,
     item: null,
@@ -371,68 +408,68 @@ export default function AdminWithdrawalsPage() {
   const [paymentMethodsOpen, setPaymentMethodsOpen] = useState(false);
 
   useEffect(() => {
-  const token = localStorage.getItem("admin_token");
-  if (!token) return;
+    const token = localStorage.getItem("admin_token");
+    if (!token) return;
 
-  const socket = io(API, {
-    auth: {
-      token,
-    },
-  });
-
-  socket.on("connect", () => {
-    console.log("[AdminWithdrawals] socket connected:", socket.id);
-    socket.emit("admin:join");
-  });
-
-  socket.on("admin:withdrawalCreated", ({ withdrawal, user }) => {
-    console.log("[AdminWithdrawals] new withdrawal:", withdrawal);
-
-    if (!withdrawal?._id) return;
-
-    const newRow = {
-      ...withdrawal,
-      user: user || withdrawal.user,
-    };
-
-    setWithdrawals((prev) => {
-      const exists = prev.some(
-        (w) => String(w._id) === String(withdrawal._id)
-      );
-
-      if (exists) return prev;
-
-      return [newRow, ...prev];
+    const socket = io(API, {
+      auth: {
+        token,
+      },
     });
 
-    setPage(1);
-    toast.success("New withdrawal submitted");
-  });
+    socket.on("connect", () => {
+      console.log("[AdminWithdrawals] socket connected:", socket.id);
+      socket.emit("admin:join");
+    });
 
-  socket.on("admin:withdrawalUpdated", ({ withdrawal, user }) => {
-    if (!withdrawal?._id) return;
+    socket.on("admin:withdrawalCreated", ({ withdrawal, user }) => {
+      console.log("[AdminWithdrawals] new withdrawal:", withdrawal);
 
-    setWithdrawals((prev) =>
-      prev.map((w) =>
-        String(w._id) === String(withdrawal._id)
-          ? {
-              ...w,
-              ...withdrawal,
-              user: user || withdrawal.user || w.user,
-            }
-          : w
-      )
-    );
-  });
+      if (!withdrawal?._id) return;
 
-  return () => {
-    socket.off("connect");
-    socket.off("admin:withdrawalCreated");
-    socket.off("admin:withdrawalUpdated");
-    socket.disconnect();
-  };
-}, []);
-  
+      const newRow = {
+        ...withdrawal,
+        user: user || withdrawal.user,
+      };
+
+      setWithdrawals((prev) => {
+        const exists = prev.some(
+          (w) => String(w._id) === String(withdrawal._id),
+        );
+
+        if (exists) return prev;
+
+        return [newRow, ...prev];
+      });
+
+      setPage(1);
+      toast.success("New withdrawal submitted");
+    });
+
+    socket.on("admin:withdrawalUpdated", ({ withdrawal, user }) => {
+      if (!withdrawal?._id) return;
+
+      setWithdrawals((prev) =>
+        prev.map((w) =>
+          String(w._id) === String(withdrawal._id)
+            ? {
+                ...w,
+                ...withdrawal,
+                user: user || withdrawal.user || w.user,
+              }
+            : w,
+        ),
+      );
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("admin:withdrawalCreated");
+      socket.off("admin:withdrawalUpdated");
+      socket.disconnect();
+    };
+  }, []);
+
   async function fetchWithdrawals() {
     setBusy(true);
     try {
@@ -524,7 +561,7 @@ export default function AdminWithdrawalsPage() {
       METHOD_GROUPS.forEach((group) => {
         const firstMethod = group.methods[0];
         const item = rows.find((x) => x.method === firstMethod);
-      
+
         drafts[group.key] = {
           minAmount:
             item?.minAmount !== undefined && item?.minAmount !== null
@@ -536,7 +573,7 @@ export default function AdminWithdrawalsPage() {
               : "999999",
         };
       });
-      
+
       setMethodDrafts(drafts);
     } catch (err) {
       console.error("fetchWithdrawalMethods error:", err);
@@ -563,7 +600,7 @@ export default function AdminWithdrawalsPage() {
       group.methods.some((m) => {
         const item = withdrawalMethods.find((x) => x.method === m);
         return Boolean(item?.isAvailable);
-      })
+      }),
     ).length;
 
     return `${available}/${METHOD_GROUPS.length} available`;
@@ -573,7 +610,9 @@ export default function AdminWithdrawalsPage() {
     let list = [...withdrawals];
 
     if (methodFamilyFilter === "CRYPTO") {
-      list = list.filter((w) => methodFamily(withdrawalMethodOf(w)) === "CRYPTO");
+      list = list.filter(
+        (w) => methodFamily(withdrawalMethodOf(w)) === "CRYPTO",
+      );
     }
 
     if (methodFamilyFilter === "BANK") {
@@ -592,16 +631,28 @@ export default function AdminWithdrawalsPage() {
         const addr = String(w.address || "").toLowerCase();
         const userUid = String(w?.user?.uid || "").toLowerCase();
         const phone = String(w?.user?.phoneNumber || "").toLowerCase();
-        const selectedMethod = String(withdrawalMethodOf(w) || "").toLowerCase();
+        const selectedMethod = String(
+          withdrawalMethodOf(w) || "",
+        ).toLowerCase();
 
         const bankName = String(w?.bankDetails?.bankName || "").toLowerCase();
-        const accountNumber = String(w?.bankDetails?.accountNumber || "").toLowerCase();
+        const accountNumber = String(
+          w?.bankDetails?.accountNumber || "",
+        ).toLowerCase();
         const sortCode = String(w?.bankDetails?.sortCode || "").toLowerCase();
-        const accountName = String(w?.bankDetails?.accountName || "").toLowerCase();
+        const accountName = String(
+          w?.bankDetails?.accountName || "",
+        ).toLowerCase();
         const iban = String(w?.bankDetails?.iban || "").toLowerCase();
         const bicSwift = String(w?.bankDetails?.bicSwift || "").toLowerCase();
         const country = String(w?.bankDetails?.country || "").toLowerCase();
         const wiseEmail = String(w?.bankDetails?.wiseEmail || "").toLowerCase();
+        const skrillEmail = String(
+          w?.bankDetails?.skrillEmail || "",
+        ).toLowerCase();
+        const referenceNote = String(
+          w?.bankDetails?.referenceNote || "",
+        ).toLowerCase();
 
         return (
           id.includes(s) ||
@@ -616,7 +667,9 @@ export default function AdminWithdrawalsPage() {
           iban.includes(s) ||
           bicSwift.includes(s) ||
           country.includes(s) ||
-          wiseEmail.includes(s)
+          wiseEmail.includes(s) ||
+          skrillEmail.includes(s) ||
+          referenceNote.includes(s)
         );
       });
     }
@@ -664,11 +717,11 @@ export default function AdminWithdrawalsPage() {
     const rejected = filteredWithdrawals.filter((x) => x.status === "REJECTED");
 
     const cryptoCount = filteredWithdrawals.filter(
-      (x) => methodFamily(withdrawalMethodOf(x)) === "CRYPTO"
+      (x) => methodFamily(withdrawalMethodOf(x)) === "CRYPTO",
     ).length;
 
     const bankCount = filteredWithdrawals.filter(
-      (x) => methodFamily(withdrawalMethodOf(x)) === "BANK"
+      (x) => methodFamily(withdrawalMethodOf(x)) === "BANK",
     ).length;
 
     const sum = (arr) => arr.reduce((acc, x) => acc + Number(x.amount || 0), 0);
@@ -690,7 +743,9 @@ export default function AdminWithdrawalsPage() {
     const total = filteredRecentAddresses.length;
 
     const byCrypto = CRYPTO_OPTIONS.reduce((acc, type) => {
-      acc[type] = filteredRecentAddresses.filter((x) => x.cryptoType === type).length;
+      acc[type] = filteredRecentAddresses.filter(
+        (x) => x.cryptoType === type,
+      ).length;
       return acc;
     }, {});
 
@@ -717,46 +772,49 @@ export default function AdminWithdrawalsPage() {
 
   function openApproveModal(item) {
     if (!item?._id) return;
-  
+
     setApproveModal({
       open: true,
       item,
     });
   }
-  
+
   function closeApproveModal() {
     if (actionBusyId) return;
-  
+
     setApproveModal({
       open: false,
       item: null,
     });
   }
-  
+
   async function submitApproveWithdrawal() {
     const item = approveModal.item;
     if (!item?._id) return;
-  
+
     setActionBusyId(item._id);
-  
+
     try {
       const token = localStorage.getItem("admin_token");
-  
-      const res = await fetch(`${API}/api/admin/withdrawals/${item._id}/approve`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-  
+
+      const res = await fetch(
+        `${API}/api/admin/withdrawals/${item._id}/approve`,
+        {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
       const data = await res.json();
       if (!res.ok) throw new Error(data?.message || "Approve failed");
-  
+
       toast.success("Withdrawal approved");
-  
+
       setApproveModal({
         open: false,
         item: null,
       });
-  
+
       await fetchWithdrawals();
     } catch (err) {
       console.error("submitApproveWithdrawal error:", err);
@@ -768,55 +826,58 @@ export default function AdminWithdrawalsPage() {
 
   function openRejectModal(item) {
     if (!item?._id) return;
-  
+
     setRejectModal({
       open: true,
       item,
       reason: "",
     });
   }
-  
+
   function closeRejectModal() {
     if (actionBusyId) return;
-  
+
     setRejectModal({
       open: false,
       item: null,
       reason: "",
     });
   }
-  
+
   async function submitRejectWithdrawal() {
     const item = rejectModal.item;
     if (!item?._id) return;
-  
+
     setActionBusyId(item._id);
-  
+
     try {
       const token = localStorage.getItem("admin_token");
-  
-      const res = await fetch(`${API}/api/admin/withdrawals/${item._id}/reject`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+
+      const res = await fetch(
+        `${API}/api/admin/withdrawals/${item._id}/reject`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            adminNote: String(rejectModal.reason || "").trim(),
+          }),
         },
-        body: JSON.stringify({
-          adminNote: String(rejectModal.reason || "").trim(),
-        }),
-      });
-  
+      );
+
       const data = await res.json();
       if (!res.ok) throw new Error(data?.message || "Reject failed");
-  
+
       toast.success("Withdrawal rejected");
-  
+
       setRejectModal({
         open: false,
         item: null,
         reason: "",
       });
-  
+
       await fetchWithdrawals();
     } catch (err) {
       console.error("submitRejectWithdrawal error:", err);
@@ -828,67 +889,71 @@ export default function AdminWithdrawalsPage() {
 
   function openProgressModal(item) {
     if (!item?._id) return;
-  
+
     setProgressModal({
       open: true,
       item,
       progressPercent: Number(item?.progressPercent || 0).toFixed(2),
     });
   }
-  
+
   function closeProgressModal() {
     if (actionBusyId) return;
-  
+
     setProgressModal({
       open: false,
       item: null,
       progressPercent: "",
     });
   }
-  
+
   async function submitProgressUpdate() {
     const item = progressModal.item;
     if (!item?._id) return;
-  
+
     const percent = Number(progressModal.progressPercent);
-  
+
     if (!Number.isFinite(percent)) {
       toast.error("Percentage must be a valid number");
       return;
     }
-  
+
     if (percent < 0 || percent > 100) {
       toast.error("Percentage must be between 0 and 100");
       return;
     }
-  
+
     setActionBusyId(item._id);
-  
+
     try {
       const token = localStorage.getItem("admin_token");
-  
-      const res = await fetch(`${API}/api/admin/withdrawals/${item._id}/progress`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+
+      const res = await fetch(
+        `${API}/api/admin/withdrawals/${item._id}/progress`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            progressPercent: percent,
+          }),
         },
-        body: JSON.stringify({
-          progressPercent: percent,
-        }),
-      });
-  
+      );
+
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.message || "Failed to update progress");
-  
+      if (!res.ok)
+        throw new Error(data?.message || "Failed to update progress");
+
       toast.success("Withdrawal progress updated");
-  
+
       setProgressModal({
         open: false,
         item: null,
         progressPercent: "",
       });
-  
+
       await fetchWithdrawals();
     } catch (err) {
       console.error("submitProgressUpdate error:", err);
@@ -916,12 +981,12 @@ export default function AdminWithdrawalsPage() {
   function openCryptoAddressModal(item) {
     const selectedMethod = withdrawalMethodOf(item);
     const address = String(item?.address || "").trim();
-  
+
     if (!address) {
       toast.error("No wallet address found");
       return;
     }
-  
+
     setCryptoAddressModal({
       open: true,
       item,
@@ -929,7 +994,7 @@ export default function AdminWithdrawalsPage() {
       method: selectedMethod,
     });
   }
-  
+
   function closeCryptoAddressModal() {
     setCryptoAddressModal({
       open: false,
@@ -986,7 +1051,7 @@ export default function AdminWithdrawalsPage() {
             address: cleanAddress,
             cryptoType: editCryptoType,
           }),
-        }
+        },
       );
 
       const data = await res.json();
@@ -1024,7 +1089,7 @@ export default function AdminWithdrawalsPage() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       const data = await res.json();
@@ -1072,60 +1137,63 @@ export default function AdminWithdrawalsPage() {
       },
     }));
   }
-  
+
   async function saveMethodLimits(group) {
     if (!group?.methods?.length) return;
-  
+
     const draft = methodDrafts[group.key] || {};
     const minAmount = Number(draft.minAmount);
     const maxAmount = Number(draft.maxAmount);
-  
+
     if (!Number.isFinite(minAmount) || minAmount < 0) {
       toast.error("Min amount must be a valid number");
       return;
     }
-  
+
     if (!Number.isFinite(maxAmount) || maxAmount < 0) {
       toast.error("Max amount must be a valid number");
       return;
     }
-  
+
     if (maxAmount < minAmount) {
       toast.error("Max amount cannot be lower than min amount");
       return;
     }
-  
+
     setMethodToggleBusy(group.key);
-  
+
     try {
       const token = localStorage.getItem("admin_token");
-  
+
       await Promise.all(
         group.methods.map(async (method) => {
           const item = getMethodItem(method);
-  
-          const res = await fetch(`${API}/api/admin/withdrawal-methods/${method}`, {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
+
+          const res = await fetch(
+            `${API}/api/admin/withdrawal-methods/${method}`,
+            {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                isAvailable: Boolean(item?.isAvailable),
+                minAmount,
+                maxAmount,
+                note: item?.note || "",
+              }),
             },
-            body: JSON.stringify({
-              isAvailable: Boolean(item?.isAvailable),
-              minAmount,
-              maxAmount,
-              note: item?.note || "",
-            }),
-          });
-  
+          );
+
           const data = await res.json().catch(() => ({}));
-  
+
           if (!res.ok) {
             throw new Error(data?.message || `Failed to update ${method}`);
           }
-        })
+        }),
       );
-  
+
       toast.success(`${group.label} limits updated`);
       await fetchWithdrawalMethods();
     } catch (err) {
@@ -1163,7 +1231,7 @@ export default function AdminWithdrawalsPage() {
           if (!res.ok) {
             throw new Error(data?.message || `Failed to update ${m}`);
           }
-        })
+        }),
       );
 
       toast.success(`${group.label} ${nextValue ? "enabled" : "disabled"}`);
@@ -1188,16 +1256,16 @@ export default function AdminWithdrawalsPage() {
 
   function InfoRow({ label, value }) {
     const displayValue = String(value || "-").trim() || "-";
-  
+
     return (
       <div>
         <label className={`text-xs font-medium ${mutedText}`}>{label}</label>
-  
+
         <div className={bankFieldClass}>
           <span className="min-w-0 break-all text-xs font-semibold tracking-wide">
             {displayValue}
           </span>
-  
+
           <button
             type="button"
             onClick={() => copy(value || "")}
@@ -1215,7 +1283,8 @@ export default function AdminWithdrawalsPage() {
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className={`text-xs ${mutedText}`}>
-            Admin withdrawals, payment methods, and recent withdrawal address records
+            Admin withdrawals, payment methods, and recent withdrawal address
+            records
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -1232,8 +1301,8 @@ export default function AdminWithdrawalsPage() {
                       ? "bg-white text-slate-900 font-semibold"
                       : "bg-gray-900 text-white font-semibold"
                     : theme === "dark"
-                    ? "text-white/70 hover:bg-white/10"
-                    : "text-gray-600 hover:bg-gray-100",
+                      ? "text-white/70 hover:bg-white/10"
+                      : "text-gray-600 hover:bg-gray-100",
                 ].join(" ")}
               >
                 Withdrawals
@@ -1251,8 +1320,8 @@ export default function AdminWithdrawalsPage() {
                       ? "bg-white text-slate-900 font-semibold"
                       : "bg-gray-900 text-white font-semibold"
                     : theme === "dark"
-                    ? "text-white/70 hover:bg-white/10"
-                    : "text-gray-600 hover:bg-gray-100",
+                      ? "text-white/70 hover:bg-white/10"
+                      : "text-gray-600 hover:bg-gray-100",
                 ].join(" ")}
               >
                 Recent Withdrawal Addresses
@@ -1265,7 +1334,9 @@ export default function AdminWithdrawalsPage() {
               className={subtleButtonClass}
             >
               Payment Methods
-              <span className={`ml-2 text-xs ${mutedText}`}>{methodSummary}</span>
+              <span className={`ml-2 text-xs ${mutedText}`}>
+                {methodSummary}
+              </span>
             </button>
 
             <button
@@ -1305,7 +1376,7 @@ export default function AdminWithdrawalsPage() {
                 theme={theme}
                 title="Bank"
                 value={withdrawalStats.bankCount}
-                sub="Bank / Wise withdrawals"
+                sub="Bank / Wise / Skrill withdrawals"
               />
               <StatCard
                 theme={theme}
@@ -1326,7 +1397,7 @@ export default function AdminWithdrawalsPage() {
                 <div className="flex flex-wrap items-center gap-2">
                   {["ALL", "CRYPTO", "BANK"].map((pill) => {
                     const active = methodFamilyFilter === pill;
-              
+
                     return (
                       <button
                         key={pill}
@@ -1342,16 +1413,20 @@ export default function AdminWithdrawalsPage() {
                               ? "bg-white text-slate-900"
                               : "bg-gray-900 text-white"
                             : theme === "dark"
-                            ? "border border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
-                            : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50",
+                              ? "border border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
+                              : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50",
                         ].join(" ")}
                       >
-                        {pill === "ALL" ? "All" : pill === "CRYPTO" ? "Crypto" : "Bank / Wise"}
+                        {pill === "ALL"
+                          ? "All"
+                          : pill === "CRYPTO"
+                            ? "Crypto"
+                            : "Bank / Wise / Skrill"}
                       </button>
                     );
                   })}
                 </div>
-              
+
                 <button
                   onClick={() => {
                     setQ("");
@@ -1374,7 +1449,7 @@ export default function AdminWithdrawalsPage() {
                       setQ(e.target.value);
                       setPage(1);
                     }}
-                    placeholder="Search UID / phone / address / bank / IBAN / Wise / id / method..."
+                    placeholder="Search UID / phone / address / bank / IBAN / Wise / Skrill / id / method..."
                     className={inputClass}
                   />
                 </div>
@@ -1394,8 +1469,8 @@ export default function AdminWithdrawalsPage() {
                       methodFamilyFilter === "CRYPTO"
                         ? methodFamily(x) === "CRYPTO"
                         : methodFamilyFilter === "BANK"
-                        ? methodFamily(x) === "BANK"
-                        : true
+                          ? methodFamily(x) === "BANK"
+                          : true,
                     ).map((x) => (
                       <option key={x} value={x}>
                         {methodLabel(x)}
@@ -1405,7 +1480,9 @@ export default function AdminWithdrawalsPage() {
                 </div>
 
                 <div>
-                  <label className={`text-xs ${mutedText}`}>Status (server filter)</label>
+                  <label className={`text-xs ${mutedText}`}>
+                    Status (server filter)
+                  </label>
                   <select
                     value={status}
                     onChange={(e) => {
@@ -1440,7 +1517,7 @@ export default function AdminWithdrawalsPage() {
                       <th className="px-4 py-3">Date</th>
                       <th className="px-4 py-3">UID</th>
                       <th className="px-4 py-3">Balance</th>
-                      <th className="px-4 py-3">Amount</th>                      
+                      <th className="px-4 py-3">Amount</th>
                       <th className="px-4 py-3">Type</th>
                       <th className="px-4 py-3">Details</th>
                       <th className="px-4 py-3">Status</th>
@@ -1458,7 +1535,9 @@ export default function AdminWithdrawalsPage() {
                       return (
                         <tr key={w._id}>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className={strongText}>{fmtDate(w.createdAt)}</div>
+                            <div className={strongText}>
+                              {fmtDate(w.createdAt)}
+                            </div>
                           </td>
 
                           <td className="px-4 py-3 whitespace-nowrap">
@@ -1466,13 +1545,13 @@ export default function AdminWithdrawalsPage() {
                               {w?.user?.uid || "Unknown"}
                             </div>
                           </td>
-                          
+
                           <td className="px-4 py-3 whitespace-nowrap">
                             <div className={`font-semibold ${strongText}`}>
                               {balanceMoney(w?.balanceAfter)}
                             </div>
                           </td>
-                          
+
                           <td className="px-4 py-3 whitespace-nowrap">
                             <div className={`font-semibold ${strongText}`}>
                               {money(w.amount)}
@@ -1505,7 +1584,9 @@ export default function AdminWithdrawalsPage() {
                               </div>
                             ) : (
                               <div className="flex items-center gap-2">
-                                <div className={`max-w-[320px] truncate ${strongText}`}>
+                                <div
+                                  className={`max-w-[320px] truncate ${strongText}`}
+                                >
                                   {w.address}
                                 </div>
 
@@ -1554,15 +1635,17 @@ export default function AdminWithdrawalsPage() {
                               >
                                 {acting && isPending ? "..." : "Approve"}
                               </button>
-                            
+
                               <button
                                 onClick={() => openRejectModal(w)}
                                 disabled={!isPending || acting}
-                                className={subtleButtonClass + " disabled:opacity-50"}
+                                className={
+                                  subtleButtonClass + " disabled:opacity-50"
+                                }
                               >
                                 Reject
                               </button>
-                            
+
                               <button
                                 onClick={() => openProgressModal(w)}
                                 disabled={!isPending || acting}
@@ -1702,7 +1785,9 @@ export default function AdminWithdrawalsPage() {
                       return (
                         <tr key={item._id}>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className={strongText}>{fmtDate(item.lastUsedAt)}</div>
+                            <div className={strongText}>
+                              {fmtDate(item.lastUsedAt)}
+                            </div>
                           </td>
 
                           <td className="px-4 py-3 whitespace-nowrap">
@@ -1719,7 +1804,9 @@ export default function AdminWithdrawalsPage() {
 
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
-                              <div className={`max-w-[360px] truncate ${strongText}`}>
+                              <div
+                                className={`max-w-[360px] truncate ${strongText}`}
+                              >
                                 {item.address}
                               </div>
 
@@ -1740,20 +1827,24 @@ export default function AdminWithdrawalsPage() {
                           <td className="px-4 py-3 whitespace-nowrap">
                             <div className="flex justify-end gap-2">
                               <button
-                                 onClick={() => openEditModal(item)}
-                                 disabled={acting}
-                                 className={subtleButtonClass + " disabled:opacity-50"}
-                               >
-                                 Edit
-                               </button>
-                               
-                               <button
-                                 onClick={() => deleteRecentAddress(item._id)}
-                                 disabled={acting}
-                                 className={subtleButtonClass + " disabled:opacity-50"}
-                               >
-                                 {acting ? "..." : "Delete"}
-                               </button>
+                                onClick={() => openEditModal(item)}
+                                disabled={acting}
+                                className={
+                                  subtleButtonClass + " disabled:opacity-50"
+                                }
+                              >
+                                Edit
+                              </button>
+
+                              <button
+                                onClick={() => deleteRecentAddress(item._id)}
+                                disabled={acting}
+                                className={
+                                  subtleButtonClass + " disabled:opacity-50"
+                                }
+                              >
+                                {acting ? "..." : "Delete"}
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -1779,7 +1870,9 @@ export default function AdminWithdrawalsPage() {
 
         <div
           className={`mt-5 flex items-center justify-between px-1 py-3 ${
-            theme === "dark" ? "border-t border-white/10" : "border-t border-gray-200"
+            theme === "dark"
+              ? "border-t border-white/10"
+              : "border-t border-gray-200"
           }`}
         >
           <div className={`text-xs ${mutedText}`}>
@@ -1840,7 +1933,7 @@ export default function AdminWithdrawalsPage() {
             }}
           >
             <ModalSoftGlow />
-        
+
             <div
               className={
                 theme === "dark"
@@ -1857,7 +1950,7 @@ export default function AdminWithdrawalsPage() {
               >
                 <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-cyan-400/20 blur-3xl" />
                 <div className="absolute -bottom-12 -left-10 h-32 w-32 rounded-full bg-blue-500/20 blur-3xl" />
-        
+
                 <div className="relative flex items-start justify-between gap-4">
                   <div>
                     <div
@@ -1870,16 +1963,17 @@ export default function AdminWithdrawalsPage() {
                       <ShieldCheck className="h-3.5 w-3.5" />
                       Crypto withdrawal address
                     </div>
-        
+
                     <h3 className={`mt-4 text-xl font-bold ${strongText}`}>
                       Scan or copy wallet address
                     </h3>
-        
+
                     <p className={`mt-2 text-xs leading-5 ${mutedText}`}>
-                      Verify the network and wallet address before approving this withdrawal.
+                      Verify the network and wallet address before approving
+                      this withdrawal.
                     </p>
                   </div>
-        
+
                   <button
                     type="button"
                     onClick={closeCryptoAddressModal}
@@ -1893,7 +1987,7 @@ export default function AdminWithdrawalsPage() {
                   </button>
                 </div>
               </div>
-        
+
               <div className="px-6 py-6">
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-[220px_1fr]">
                   <div
@@ -1912,7 +2006,7 @@ export default function AdminWithdrawalsPage() {
                       />
                     </div>
                   </div>
-        
+
                   <div className="flex flex-col justify-between gap-4">
                     <div className="grid grid-cols-1 gap-3">
                       <div
@@ -1922,12 +2016,14 @@ export default function AdminWithdrawalsPage() {
                             : "rounded-2xl border border-gray-200 bg-gray-50 p-4"
                         }
                       >
-                        <div className={`text-[11px] ${mutedText}`}>Network</div>
+                        <div className={`text-[11px] ${mutedText}`}>
+                          Network
+                        </div>
                         <div className={`mt-1 text-sm font-bold ${strongText}`}>
                           {methodLabel(cryptoAddressModal.method)}
                         </div>
                       </div>
-        
+
                       <div
                         className={
                           theme === "dark"
@@ -1935,12 +2031,14 @@ export default function AdminWithdrawalsPage() {
                             : "rounded-2xl border border-gray-200 bg-gray-50 p-4"
                         }
                       >
-                        <div className={`text-[11px] ${mutedText}`}>User UID</div>
+                        <div className={`text-[11px] ${mutedText}`}>
+                          User UID
+                        </div>
                         <div className={`mt-1 text-sm font-bold ${strongText}`}>
                           {cryptoAddressModal.item?.user?.uid || "Unknown"}
                         </div>
                       </div>
-        
+
                       <div
                         className={
                           theme === "dark"
@@ -1956,12 +2054,12 @@ export default function AdminWithdrawalsPage() {
                     </div>
                   </div>
                 </div>
-        
+
                 <div className="mt-5">
                   <div className={`mb-2 text-xs font-medium ${mutedText}`}>
                     Wallet address
                   </div>
-        
+
                   <div
                     className={
                       theme === "dark"
@@ -1969,10 +2067,12 @@ export default function AdminWithdrawalsPage() {
                         : "rounded-3xl border border-gray-200 bg-gray-50 p-4"
                     }
                   >
-                    <div className={`break-all text-sm font-semibold leading-6 ${strongText}`}>
+                    <div
+                      className={`break-all text-sm font-semibold leading-6 ${strongText}`}
+                    >
                       {cryptoAddressModal.address}
                     </div>
-        
+
                     <button
                       type="button"
                       onClick={() => copy(cryptoAddressModal.address)}
@@ -1987,7 +2087,7 @@ export default function AdminWithdrawalsPage() {
                     </button>
                   </div>
                 </div>
-        
+
                 <div
                   className={
                     theme === "dark"
@@ -1995,8 +2095,9 @@ export default function AdminWithdrawalsPage() {
                       : "mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800"
                   }
                 >
-                  Always confirm the selected network matches the wallet address before approving.
-                  Wrong-network transfers may not be recoverable.
+                  Always confirm the selected network matches the wallet address
+                  before approving. Wrong-network transfers may not be
+                  recoverable.
                 </div>
               </div>
             </div>
@@ -2011,11 +2112,13 @@ export default function AdminWithdrawalsPage() {
             }}
           >
             <ModalSoftGlow />
-         
+
             <div className={`relative ${rejectModalCardClass}`}>
               <div
                 className={`flex items-start justify-between gap-4 px-5 py-5 ${
-                  theme === "dark" ? "border-b border-white/10" : "border-b border-gray-200"
+                  theme === "dark"
+                    ? "border-b border-white/10"
+                    : "border-b border-gray-200"
                 }`}
               >
                 <div>
@@ -2023,10 +2126,11 @@ export default function AdminWithdrawalsPage() {
                     Reject withdrawal
                   </div>
                   <div className={`mt-1 text-xs ${mutedText}`}>
-                    Confirm rejection and return the withdrawal amount to the user balance.
+                    Confirm rejection and return the withdrawal amount to the
+                    user balance.
                   </div>
                 </div>
-        
+
                 <button
                   type="button"
                   onClick={closeRejectModal}
@@ -2036,25 +2140,31 @@ export default function AdminWithdrawalsPage() {
                   ✕
                 </button>
               </div>
-        
+
               <div className="space-y-4 px-5 py-5">
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <div className={rejectInfoCardClass}>
                     <div className={`text-[11px] ${mutedText}`}>UID</div>
-                    <div className={`mt-1 truncate text-xs font-semibold ${strongText}`}>
+                    <div
+                      className={`mt-1 truncate text-xs font-semibold ${strongText}`}
+                    >
                       {rejectModal.item?.user?.uid || "Unknown"}
                     </div>
                   </div>
-        
+
                   <div className={rejectInfoCardClass}>
-                    <div className={`text-[11px] ${mutedText}`}>Current Balance</div>
+                    <div className={`text-[11px] ${mutedText}`}>
+                      Current Balance
+                    </div>
                     <div className={`mt-1 text-xs font-semibold ${strongText}`}>
                       {balanceMoney(rejectModal.item?.user?.balance)}
                     </div>
                   </div>
-        
+
                   <div className={rejectInfoCardClass}>
-                    <div className={`text-[11px] ${mutedText}`}>Withdrawal amount</div>
+                    <div className={`text-[11px] ${mutedText}`}>
+                      Withdrawal amount
+                    </div>
                     <div
                       className={`mt-1 text-xs font-semibold ${
                         theme === "dark" ? "text-red-200" : "text-red-700"
@@ -2064,7 +2174,7 @@ export default function AdminWithdrawalsPage() {
                     </div>
                   </div>
                 </div>
-        
+
                 <div
                   className={`rounded-2xl border px-4 py-3 ${
                     theme === "dark"
@@ -2077,12 +2187,12 @@ export default function AdminWithdrawalsPage() {
                     <span className="font-semibold">
                       {balanceMoney(
                         Number(rejectModal.item?.user?.balance || 0) +
-                          Number(rejectModal.item?.amount || 0)
+                          Number(rejectModal.item?.amount || 0),
                       )}
                     </span>
                   </div>
                 </div>
-        
+
                 <div>
                   <textarea
                     value={rejectModal.reason}
@@ -2098,10 +2208,12 @@ export default function AdminWithdrawalsPage() {
                   />
                 </div>
               </div>
-        
+
               <div
                 className={`flex items-center justify-end gap-2 px-5 py-4 ${
-                  theme === "dark" ? "border-t border-white/10 bg-white/[0.03]" : "border-t border-gray-200 bg-gray-50"
+                  theme === "dark"
+                    ? "border-t border-white/10 bg-white/[0.03]"
+                    : "border-t border-gray-200 bg-gray-50"
                 }`}
               >
                 <button
@@ -2112,14 +2224,16 @@ export default function AdminWithdrawalsPage() {
                 >
                   Cancel
                 </button>
-        
+
                 <button
                   type="button"
                   onClick={submitRejectWithdrawal}
                   disabled={actionBusyId === rejectModal.item?._id}
                   className={rejectDangerButtonClass}
                 >
-                  {actionBusyId === rejectModal.item?._id ? "Rejecting..." : "Reject withdrawal"}
+                  {actionBusyId === rejectModal.item?._id
+                    ? "Rejecting..."
+                    : "Reject withdrawal"}
                 </button>
               </div>
             </div>
@@ -2134,7 +2248,7 @@ export default function AdminWithdrawalsPage() {
             }}
           >
             <ModalSoftGlow />
-        
+
             <div
               className={
                 theme === "dark"
@@ -2144,7 +2258,9 @@ export default function AdminWithdrawalsPage() {
             >
               <div
                 className={`flex items-start justify-between gap-4 px-5 py-5 ${
-                  theme === "dark" ? "border-b border-white/10" : "border-b border-gray-200"
+                  theme === "dark"
+                    ? "border-b border-white/10"
+                    : "border-b border-gray-200"
                 }`}
               >
                 <div>
@@ -2155,7 +2271,7 @@ export default function AdminWithdrawalsPage() {
                     Set the withdrawal status percentage shown to the user.
                   </div>
                 </div>
-        
+
                 <button
                   type="button"
                   onClick={closeProgressModal}
@@ -2165,35 +2281,44 @@ export default function AdminWithdrawalsPage() {
                   ✕
                 </button>
               </div>
-        
+
               <div className="space-y-5 px-5 py-5">
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <div className={approveInfoCardClass}>
                     <div className={`text-[11px] ${mutedText}`}>User UID</div>
-                    <div className={`mt-1 truncate text-xs font-semibold ${strongText}`}>
+                    <div
+                      className={`mt-1 truncate text-xs font-semibold ${strongText}`}
+                    >
                       {progressModal.item?.user?.uid || "Unknown"}
                     </div>
                   </div>
-        
+
                   <div className={approveInfoCardClass}>
-                    <div className={`text-[11px] ${mutedText}`}>Withdrawal amount</div>
+                    <div className={`text-[11px] ${mutedText}`}>
+                      Withdrawal amount
+                    </div>
                     <div className={`mt-1 text-xs font-semibold ${strongText}`}>
                       {balanceMoney(progressModal.item?.amount)}
                     </div>
                   </div>
-        
+
                   <div className={approveInfoCardClass}>
-                    <div className={`text-[11px] ${mutedText}`}>Current progress</div>
+                    <div className={`text-[11px] ${mutedText}`}>
+                      Current progress
+                    </div>
                     <div
                       className={`mt-1 text-xs font-semibold ${
                         theme === "dark" ? "text-sky-200" : "text-sky-700"
                       }`}
                     >
-                      {Number(progressModal.item?.progressPercent || 0).toFixed(2)}%
+                      {Number(progressModal.item?.progressPercent || 0).toFixed(
+                        2,
+                      )}
+                      %
                     </div>
                   </div>
                 </div>
-        
+
                 <div
                   className={`rounded-3xl border p-4 ${
                     theme === "dark"
@@ -2210,7 +2335,7 @@ export default function AdminWithdrawalsPage() {
                         Enter any value from 0.00 to 100.00.
                       </div>
                     </div>
-        
+
                     <div
                       className={`rounded-2xl px-4 py-2 text-lg font-bold ${
                         theme === "dark"
@@ -2221,7 +2346,7 @@ export default function AdminWithdrawalsPage() {
                       {Number(progressModal.progressPercent || 0).toFixed(2)}%
                     </div>
                   </div>
-        
+
                   <div
                     className={`mt-4 h-3 overflow-hidden rounded-full ${
                       theme === "dark" ? "bg-white/10" : "bg-gray-200"
@@ -2234,18 +2359,21 @@ export default function AdminWithdrawalsPage() {
                       style={{
                         width: `${Math.min(
                           100,
-                          Math.max(0, Number(progressModal.progressPercent || 0))
+                          Math.max(
+                            0,
+                            Number(progressModal.progressPercent || 0),
+                          ),
                         )}%`,
                       }}
                     />
                   </div>
                 </div>
-        
+
                 <div>
                   <label className={`text-xs font-medium ${mutedText}`}>
                     Set percentage
                   </label>
-        
+
                   <input
                     type="number"
                     min="0"
@@ -2261,12 +2389,12 @@ export default function AdminWithdrawalsPage() {
                     placeholder="Example: 50.00"
                     className={`${inputClass} text-sm font-semibold`}
                   />
-        
+
                   <div className={`mt-2 text-xs ${mutedText}`}>
                     Examples: 50.00, 99.99, 100.00
                   </div>
                 </div>
-        
+
                 <div className="grid grid-cols-3 gap-2">
                   {[50, 75, 99.99].map((value) => (
                     <button
@@ -2285,7 +2413,7 @@ export default function AdminWithdrawalsPage() {
                   ))}
                 </div>
               </div>
-        
+
               <div
                 className={`flex items-center justify-end gap-2 px-5 py-4 ${
                   theme === "dark"
@@ -2301,7 +2429,7 @@ export default function AdminWithdrawalsPage() {
                 >
                   Cancel
                 </button>
-        
+
                 <button
                   type="button"
                   onClick={submitProgressUpdate}
@@ -2331,7 +2459,9 @@ export default function AdminWithdrawalsPage() {
             <div className={rejectModalCardClass}>
               <div
                 className={`flex items-start justify-between gap-4 px-5 py-5 ${
-                  theme === "dark" ? "border-b border-white/10" : "border-b border-gray-200"
+                  theme === "dark"
+                    ? "border-b border-white/10"
+                    : "border-b border-gray-200"
                 }`}
               >
                 <div>
@@ -2339,10 +2469,11 @@ export default function AdminWithdrawalsPage() {
                     Approve withdrawal
                   </div>
                   <div className={`mt-1 text-xs ${mutedText}`}>
-                    Confirm this withdrawal as paid/approved. The user balance will not be refunded.
+                    Confirm this withdrawal as paid/approved. The user balance
+                    will not be refunded.
                   </div>
                 </div>
-        
+
                 <button
                   type="button"
                   onClick={closeApproveModal}
@@ -2352,35 +2483,43 @@ export default function AdminWithdrawalsPage() {
                   ✕
                 </button>
               </div>
-        
+
               <div className="space-y-4 px-5 py-5">
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <div className={approveInfoCardClass}>
                     <div className={`text-[11px] ${mutedText}`}>User UID</div>
-                    <div className={`mt-1 truncate text-xs font-semibold ${strongText}`}>
+                    <div
+                      className={`mt-1 truncate text-xs font-semibold ${strongText}`}
+                    >
                       {approveModal.item?.user?.uid || "Unknown"}
                     </div>
                   </div>
-        
+
                   <div className={approveInfoCardClass}>
-                    <div className={`text-[11px] ${mutedText}`}>Balance after withdrawal</div>
+                    <div className={`text-[11px] ${mutedText}`}>
+                      Balance after withdrawal
+                    </div>
                     <div className={`mt-1 text-xs font-semibold ${strongText}`}>
                       {balanceMoney(approveModal.item?.balanceAfter)}
                     </div>
                   </div>
-        
+
                   <div className={approveInfoCardClass}>
-                    <div className={`text-[11px] ${mutedText}`}>Withdrawal amount</div>
+                    <div className={`text-[11px] ${mutedText}`}>
+                      Withdrawal amount
+                    </div>
                     <div
                       className={`mt-1 text-xs font-semibold ${
-                        theme === "dark" ? "text-emerald-200" : "text-emerald-700"
+                        theme === "dark"
+                          ? "text-emerald-200"
+                          : "text-emerald-700"
                       }`}
                     >
                       {balanceMoney(approveModal.item?.amount)}
                     </div>
                   </div>
                 </div>
-        
+
                 <div
                   className={`rounded-2xl border px-4 py-3 ${
                     theme === "dark"
@@ -2389,10 +2528,11 @@ export default function AdminWithdrawalsPage() {
                   }`}
                 >
                   <div className="mt-1 text-xs">
-                    This confirms the withdrawal request as approved. No balance is returned to the user.
+                    This confirms the withdrawal request as approved. No balance
+                    is returned to the user.
                   </div>
                 </div>
-        
+
                 <div className={approveInfoCardClass}>
                   <div className={`text-[11px] ${mutedText}`}>Method</div>
                   <div className={`mt-1 text-xs font-semibold ${strongText}`}>
@@ -2400,7 +2540,7 @@ export default function AdminWithdrawalsPage() {
                   </div>
                 </div>
               </div>
-        
+
               <div
                 className={`flex items-center justify-end gap-2 px-5 py-4 ${
                   theme === "dark"
@@ -2416,7 +2556,7 @@ export default function AdminWithdrawalsPage() {
                 >
                   Cancel
                 </button>
-        
+
                 <button
                   type="button"
                   onClick={submitApproveWithdrawal}
@@ -2445,7 +2585,10 @@ export default function AdminWithdrawalsPage() {
                   </p>
                 </div>
 
-                <button onClick={closePaymentMethodsModal} className={subtleButtonClass}>
+                <button
+                  onClick={closePaymentMethodsModal}
+                  className={subtleButtonClass}
+                >
                   Close
                 </button>
               </div>
@@ -2457,17 +2600,19 @@ export default function AdminWithdrawalsPage() {
                   const method = group.methods[0];
                   const draft = methodDrafts[group.key] || {};
                   const item = getMethodItem(method);
-              
+
                   return (
                     <div key={group.key} className={`${cardClass} p-4`}>
                       <div className="flex flex-col gap-4">
                         <div className="flex items-start justify-between gap-4">
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
-                              <div className={`text-sm font-semibold ${strongText}`}>
+                              <div
+                                className={`text-sm font-semibold ${strongText}`}
+                              >
                                 {group.label}
                               </div>
-              
+
                               <span
                                 className={[
                                   "inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold",
@@ -2476,19 +2621,21 @@ export default function AdminWithdrawalsPage() {
                                       ? "border border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
                                       : "border border-emerald-200 bg-emerald-50 text-emerald-700"
                                     : theme === "dark"
-                                    ? "border border-red-400/20 bg-red-400/10 text-red-200"
-                                    : "border border-red-200 bg-red-50 text-red-700",
+                                      ? "border border-red-400/20 bg-red-400/10 text-red-200"
+                                      : "border border-red-200 bg-red-50 text-red-700",
                                 ].join(" ")}
                               >
                                 {checked ? "Available" : "Unavailable"}
                               </span>
                             </div>
-              
-                            <div className={`mt-2 max-w-[320px] text-xs leading-5 ${mutedText}`}>
+
+                            <div
+                              className={`mt-2 max-w-[320px] text-xs leading-5 ${mutedText}`}
+                            >
                               {group.description}
                             </div>
                           </div>
-              
+
                           <button
                             type="button"
                             disabled={isBusy}
@@ -2498,8 +2645,8 @@ export default function AdminWithdrawalsPage() {
                               checked
                                 ? "bg-emerald-500"
                                 : theme === "dark"
-                                ? "bg-white/20"
-                                : "bg-gray-300",
+                                  ? "bg-white/20"
+                                  : "bg-gray-300",
                             ].join(" ")}
                             title={checked ? "Disable method" : "Enable method"}
                           >
@@ -2511,38 +2658,55 @@ export default function AdminWithdrawalsPage() {
                             />
                           </button>
                         </div>
-              
+
                         <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
                           <div>
-                            <label className={`text-[11px] ${mutedText}`}>Min Amount</label>
+                            <label className={`text-[11px] ${mutedText}`}>
+                              Min Amount
+                            </label>
                             <input
                               type="number"
                               min="0"
                               step="0.01"
-                              value={draft.minAmount ?? String(item?.minAmount ?? 10)}
+                              value={
+                                draft.minAmount ?? String(item?.minAmount ?? 10)
+                              }
                               onChange={(e) =>
-                                updateMethodDraft(group.key, "minAmount", e.target.value)
+                                updateMethodDraft(
+                                  group.key,
+                                  "minAmount",
+                                  e.target.value,
+                                )
                               }
                               className={inputClass}
                               placeholder="10"
                             />
                           </div>
-              
+
                           <div>
-                            <label className={`text-[11px] ${mutedText}`}>Max Amount</label>
+                            <label className={`text-[11px] ${mutedText}`}>
+                              Max Amount
+                            </label>
                             <input
                               type="number"
                               min="0"
                               step="0.01"
-                              value={draft.maxAmount ?? String(item?.maxAmount ?? 999999)}
+                              value={
+                                draft.maxAmount ??
+                                String(item?.maxAmount ?? 999999)
+                              }
                               onChange={(e) =>
-                                updateMethodDraft(group.key, "maxAmount", e.target.value)
+                                updateMethodDraft(
+                                  group.key,
+                                  "maxAmount",
+                                  e.target.value,
+                                )
                               }
                               className={inputClass}
                               placeholder="999999"
                             />
                           </div>
-              
+
                           <button
                             type="button"
                             disabled={isBusy}
@@ -2552,7 +2716,7 @@ export default function AdminWithdrawalsPage() {
                             {isBusy ? "Saving..." : "Save"}
                           </button>
                         </div>
-              
+
                         <div className={`truncate text-[11px] ${mutedText}`}>
                           {group.key}
                         </div>
@@ -2670,7 +2834,9 @@ export default function AdminWithdrawalsPage() {
             <div className={bankModalCardClass}>
               <div
                 className={`flex shrink-0 items-center justify-between gap-3 px-4 py-4 sm:px-8 sm:py-6 ${
-                  theme === "dark" ? "border-b border-slate-700/60" : "border-b border-gray-200"
+                  theme === "dark"
+                    ? "border-b border-slate-700/60"
+                    : "border-b border-gray-200"
                 }`}
               >
                 <div>
@@ -2686,101 +2852,148 @@ export default function AdminWithdrawalsPage() {
 
               <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-8 sm:py-6">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                  <label className={`text-xs font-medium ${mutedText}`}>User</label>
-                  <div className={bankPlainFieldClass}>
-                    {bankViewItem?.user?.uid || "Unknown"}
-                  </div>
-                </div>
-
-                <InfoRow
-                  label="Account Name"
-                  value={bankViewItem?.bankDetails?.accountName || ""}
-                />
-
-                {withdrawalMethodOf(bankViewItem) === "BANK_FASTER_PAYMENTS" ? (
-                  <>
-                    <InfoRow
-                      label="Bank Name"
-                      value={bankViewItem?.bankDetails?.bankName || ""}
-                    />
-                    <InfoRow
-                      label="Account Number"
-                      value={bankViewItem?.bankDetails?.accountNumber || ""}
-                    />
-                    <InfoRow
-                      label="Sort Code"
-                      value={bankViewItem?.bankDetails?.sortCode || ""}
-                    />
-                  </>
-                ) : null}
-
-                {["BANK_SEPA", "UAEFTS"].includes(withdrawalMethodOf(bankViewItem)) ? (
-                  <>
-                    <InfoRow
-                      label="Bank Name"
-                      value={bankViewItem?.bankDetails?.bankName || ""}
-                    />
-                    <InfoRow label="IBAN" value={bankViewItem?.bankDetails?.iban || ""} />
-                    <InfoRow
-                      label="BIC / SWIFT"
-                      value={bankViewItem?.bankDetails?.bicSwift || ""}
-                    />
-                    <InfoRow
-                      label="Country"
-                      value={bankViewItem?.bankDetails?.country || ""}
-                    />
-                  </>
-                ) : null}
-
-                {withdrawalMethodOf(bankViewItem) === "WISE" ? (
-                  <>
-                    <InfoRow
-                      label="Wise Email"
-                      value={bankViewItem?.bankDetails?.wiseEmail || ""}
-                    />
-                    <InfoRow
-                      label="Country"
-                      value={bankViewItem?.bankDetails?.country || ""}
-                    />
-                  </>
-                ) : null}
-
-                <InfoRow
-                  label="Reference Note"
-                  value={bankViewItem?.bankDetails?.referenceNote || ""}
-                />
-
-                <div>
-                  <label className={`text-xs font-medium ${mutedText}`}>Amount</label>
-                  <div className={bankPlainFieldClass}>
-                    {money(bankViewItem?.amount)}
-                  </div>
-                </div>
-
-                {bankViewItem?.adminNote ? (
                   <div>
-                    <label className={`text-xs ${mutedText}`}>Admin Note</label>
-                    <div
-                      className={`mt-1 rounded-xl px-3 py-2 ${
-                        theme === "dark"
-                          ? "border border-white/10 bg-black/20 text-white"
-                          : "border border-gray-200 bg-gray-50 text-gray-900"
-                      }`}
-                    >
-                      {bankViewItem.adminNote}
+                    <label className={`text-xs font-medium ${mutedText}`}>
+                      User
+                    </label>
+                    <div className={bankPlainFieldClass}>
+                      {bankViewItem?.user?.uid || "Unknown"}
                     </div>
                   </div>
-                ) : null}
-           </div>
-            </div>
+
+                  <InfoRow
+                    label="Account Name"
+                    value={bankViewItem?.bankDetails?.accountName || ""}
+                  />
+
+                  {withdrawalMethodOf(bankViewItem) ===
+                  "BANK_FASTER_PAYMENTS" ? (
+                    <>
+                      <InfoRow
+                        label="Bank Name"
+                        value={bankViewItem?.bankDetails?.bankName || ""}
+                      />
+                      <InfoRow
+                        label="Account Number"
+                        value={bankViewItem?.bankDetails?.accountNumber || ""}
+                      />
+                      <InfoRow
+                        label="Sort Code"
+                        value={bankViewItem?.bankDetails?.sortCode || ""}
+                      />
+                    </>
+                  ) : null}
+
+                  {["BANK_SEPA", "UAEFTS"].includes(
+                    withdrawalMethodOf(bankViewItem),
+                  ) ? (
+                    <>
+                      <InfoRow
+                        label="Bank Name"
+                        value={bankViewItem?.bankDetails?.bankName || ""}
+                      />
+                      <InfoRow
+                        label="IBAN"
+                        value={bankViewItem?.bankDetails?.iban || ""}
+                      />
+                      <InfoRow
+                        label="BIC / SWIFT"
+                        value={bankViewItem?.bankDetails?.bicSwift || ""}
+                      />
+                      <InfoRow
+                        label="Country"
+                        value={bankViewItem?.bankDetails?.country || ""}
+                      />
+                    </>
+                  ) : null}
+
+                  {withdrawalMethodOf(bankViewItem) === "WISE" ? (
+                    <>
+                      <InfoRow
+                        label="Wise Email"
+                        value={bankViewItem?.bankDetails?.wiseEmail || ""}
+                      />
+                      <InfoRow
+                        label="Country"
+                        value={bankViewItem?.bankDetails?.country || ""}
+                      />
+                    </>
+                  ) : null}
+
+                  {withdrawalMethodOf(bankViewItem) === "SKRILL" ? (
+                    <>
+                      <InfoRow
+                        label="Skrill Email"
+                        value={bankViewItem?.bankDetails?.skrillEmail || ""}
+                      />
+                      <InfoRow
+                        label="Country"
+                        value={bankViewItem?.bankDetails?.country || ""}
+                      />
+                    </>
+                  ) : null}
+
+                  {withdrawalMethodOf(bankViewItem) === "BANK_NZ" ? (
+                    <>
+                      <InfoRow
+                        label="Bank Name"
+                        value={bankViewItem?.bankDetails?.bankName || ""}
+                      />
+                      <InfoRow
+                        label="Account Number"
+                        value={bankViewItem?.bankDetails?.accountNumber || ""}
+                      />
+                      <InfoRow
+                        label="Country"
+                        value={bankViewItem?.bankDetails?.country || "NZ"}
+                      />
+                    </>
+                  ) : null}
+
+                  <InfoRow
+                    label="Reference Note"
+                    value={bankViewItem?.bankDetails?.referenceNote || ""}
+                  />
+
+                  <div>
+                    <label className={`text-xs font-medium ${mutedText}`}>
+                      Amount
+                    </label>
+                    <div className={bankPlainFieldClass}>
+                      {money(bankViewItem?.amount)}
+                    </div>
+                  </div>
+
+                  {bankViewItem?.adminNote ? (
+                    <div>
+                      <label className={`text-xs ${mutedText}`}>
+                        Admin Note
+                      </label>
+                      <div
+                        className={`mt-1 rounded-xl px-3 py-2 ${
+                          theme === "dark"
+                            ? "border border-white/10 bg-black/20 text-white"
+                            : "border border-gray-200 bg-gray-50 text-gray-900"
+                        }`}
+                      >
+                        {bankViewItem.adminNote}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
 
               <div
                 className={`flex shrink-0 justify-end px-4 py-4 sm:px-8 sm:py-5 ${
-                  theme === "dark" ? "border-t border-slate-700/60" : "border-t border-gray-200"
+                  theme === "dark"
+                    ? "border-t border-slate-700/60"
+                    : "border-t border-gray-200"
                 }`}
               >
-                <button onClick={closeBankModal} className={bankDoneButtonClass}>
+                <button
+                  onClick={closeBankModal}
+                  className={bankDoneButtonClass}
+                >
                   Done
                 </button>
               </div>
